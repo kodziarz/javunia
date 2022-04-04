@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+<div id="cover" style="position: absolute; display: none; opacity: 0.5; height: 100vh; width: 100vw; background-color: black">
+    <div id="editDiv" style="margin: auto; width: 400px; height: 300px">
+        <input type="text" id="editDivModel">
+        <select id="editDivSelect">
+            <option value="1990">1990</option>
+            <option value="1991">1991</option>
+            <option value="1992">1992</option>
+            <option value="1993">1993</option>
+            <option value="1994">1994</option>
+            <option value="1995">1995</option>
+            <option value="1996">1996</option>
+            <option value="1997">1997</option>
+            <option value="1998">1998</option>
+            <option value="1999">1999</option>
+            <option value="2002">2000</option>
+            <option value="2001">2001</option>
+        </select>
+        <input type="submit" id="editDivUpdate" value="update">
+        <input type="submit" id="editDivCancel" value="cancel">
+    </div>
+</div>
+
+<h1>all cars</h1>
+<a href="index.html">strona index</a>
+
+<table id="table"></table>
+
+<script>
+    let coverDiv = document.getElementById("cover")
+
+    coverDiv.onclick = function () {
+        this.style.display = "none"
+    }
+
+    let editDiv = document.getElementById("editDiv")
+
+    let editDivModelInput = document.getElementById("editDivModel")
+    let editDivSelect = document.getElementById("editDivSelect")
+    let editDivUpdate = document.getElementById("editDivUpdate")
+    let editDivCancel = document.getElementById("editDivCancel")
+
+    editDivModelInput.onclick = (event) => {
+        event.stopPropagation()
+
+        return true
+    }
+
+    editDivSelect.onclick = (event) => {
+        event.stopPropagation()
+
+        return true
+    }
+
+    editDivCancel.onclick = (event) => {
+        event.stopPropagation()
+        editDivModelInput.innerText = ""
+        editDivSelect.children[0].selected = true
+        coverDiv.style.display = "none"
+        return true
+    }
+
+
+    let table = document.getElementById("table")
+
+    window.onload = async () => {
+
+        loadTable()
+    }
+
+    loadTable = async () => {
+
+        table.innerHTML = ""
+
+        let json = await fetchPostAsync("/json", {})
+
+        for (let car of json) {
+            console.log("car: ", car)
+            let row = document.createElement("tr")
+            table.appendChild(row)
+
+            let color = car.color
+            delete car.color
+
+            for (let value of Object.values(car)) {
+                let td = document.createElement("td")
+                row.appendChild(td)
+                if (value instanceof Object) {
+                    td.innerText = JSON.stringify(value)
+                } else {
+                    td.innerText = value
+                }
+            }
+            car.color = color
+
+            let colorTd = document.createElement("td")
+            row.appendChild(colorTd)
+            colorTd.style.backgroundColor = color
+            //colorTd.style.height = "1rem"
+            colorTd.style.width = "40px"
+            console.log("color: ", color)
+
+            let deleteButton = document.createElement("input")
+            row.appendChild(deleteButton)
+            deleteButton.type = "submit"
+            deleteButton.value = "delete"
+            deleteButton.onclick = async () => {
+                console.log("wynik: ", await fetchPostAsync("/delete", {car: car}))
+                loadTable()
+            }
+
+            let updateButton = document.createElement("input")
+            row.appendChild(updateButton)
+            updateButton.type = "submit"
+            updateButton.value = "update"
+            updateButton.onclick = async () => {
+                console.log("coverDiv: ", coverDiv)
+                coverDiv.style.display = "inherit"
+
+                editDivUpdate.onclick = async (event) => {
+                    event.stopPropagation()
+
+                    car.model = editDivModelInput.value
+                    car.year = editDivSelect.value
+
+                    console.log("wynik update'a: ", await fetchPostAsync("/update", car))
+
+                    loadTable()
+
+                    editDivModelInput.innerText = ""
+                    editDivSelect.children[0].selected = true
+                    coverDiv.style.display = "none"
+
+                    return true
+                }
+            }
+        }
+    }
+
+    fetchPostAsync = async (url, dataToSend) => {
+
+        const data = JSON.stringify(dataToSend)
+
+        const options = {
+            method: "POST",
+            body: data,
+        };
+
+        let response = await fetch(url, options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json() // response.json
+
+    }
+
+
+</script>
+</body>
+</html>

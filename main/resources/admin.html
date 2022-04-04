@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div>admin page</div>
+<input type="submit" id="generate" value="generuj losowo bazę samochodów">
+<a href="index.html">index</a>
+<a href="allCars.html">delete/update cars</a>
+<table id="table"></table>
+<script>
+    generateList = async () => {
+        let json = await fetchPostAsync("/generateRandom", {});
+        console.log("json: ", json)
+
+        await loadTable()
+
+    }
+
+    fetchPostAsync = async (url, dataToSend) => {
+
+        const data = JSON.stringify(dataToSend)
+
+        const options = {
+            method: "POST",
+            body: data,
+        };
+
+        let response = await fetch(url, options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json() // response.json
+
+    }
+
+    loadTable = async () => {
+
+        let table = document.getElementById("table")
+        table.innerHTML = ""
+
+        let json = await fetchPostAsync("/json", {})
+
+        for (let car of json) {
+            console.log("car: ", car)
+            let row = document.createElement("tr")
+            table.appendChild(row)
+
+            let color = car.color
+            delete car.color
+
+            for (let value of Object.values(car)) {
+                let td = document.createElement("td")
+                row.appendChild(td)
+                if (value instanceof Object) {
+                    td.innerText = JSON.stringify(value)
+                } else {
+                    td.innerText = value
+                }
+            }
+            car.color = color
+
+            let colorTd = document.createElement("td")
+            row.appendChild(colorTd)
+            colorTd.style.backgroundColor = color
+            //colorTd.style.height = "1rem"
+            colorTd.style.width = "40px"
+            console.log("color: ", color)
+
+            let generateInvoiceButton = document.createElement("input")
+            generateInvoiceButton.type = "submit"
+            generateInvoiceButton.value = "Generuj Fatkurę VAT"
+
+            generateInvoiceButton.onclick = async () => {
+                await fetchPostAsync("/generateInvoice", car)
+            }
+        }
+    }
+
+    let generateButton = document.getElementById("generate")
+    generateButton.onclick = async () => {await generateList()}
+</script>
+</body>
+</html>

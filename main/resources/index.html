@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        label{
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label>model: <input type="text" id="model"> </label>
+        <label>rok: <select id="year">
+            <option value="1990">1990</option>
+            <option value="1991">1991</option>
+            <option value="1992">1992</option>
+            <option value="1993">1993</option>
+            <option value="1994">1994</option>
+            <option value="1995">1995</option>
+            <option value="1996">1996</option>
+            <option value="1997">1997</option>
+            <option value="1998">1998</option>
+            <option value="1999">1999</option>
+            <option value="2002">2000</option>
+            <option value="2001">2001</option>
+
+        </select> </label>
+
+        <label>poduszki powietrzne: kierowca | pasażer | tylna kanapa | boczne z tyłu:
+            <input type="checkbox" name="airbag" id="airbag1">
+            <input type="checkbox" name="airbag" id="airbag2">
+            <input type="checkbox" name="airbag" id="airbag3">
+            <input type="checkbox" name="airbag" id="airbag4">
+        </label>
+        <label>kolor: <input type="color" id="color"></label>
+    </div>
+    <input type="submit" id="submit">
+
+    <a href="allCars.html">strona z danymi</a>
+    <a href="admin.html"> admin </a>
+
+<script>
+
+
+    let model = document.getElementById("model")
+    let year = document.getElementById("year")
+    let airbag1 = document.getElementById("airbag1")
+    let airbag2 = document.getElementById("airbag2")
+    let airbag3 = document.getElementById("airbag3")
+    let airbag4 = document.getElementById("airbag4")
+    let color = document.getElementById("color")
+
+    let submit = document.getElementById("submit")
+
+    submit.onclick = async () => {
+        let json = await fetchPostAsync()
+        //console.log("json: ", json)
+        alert(JSON.stringify(json, null, 5))
+    }
+
+    fetchPostAsync = async () => {
+
+        const data = JSON.stringify({
+            wasInvoiceGenerated: false,
+            model: model.value,
+            year: year.value,
+            airbagsExistance: [
+                {name: "kierowca", exists: airbag1.checked},
+                {name: "pasażer", exists: airbag2.checked},
+                {name: "tylna kanapa", exists: airbag3.checked},
+                {name: "boczne z tyłu", exists: airbag4.checked},
+            ],
+            color: color.value
+        })
+
+        const options = {
+            method: "POST",
+            body: data,
+        };
+
+        let response = await fetch("/add", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json() // response.json
+
+    }
+</script>
+</body>
+</html>
