@@ -9,7 +9,11 @@ import spark.Response;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static spark.Spark.*;
@@ -35,6 +39,7 @@ public class App {
         post("/update", (req, res) -> handleUpdate(req, res));
         post("/costam", (req, res) -> handleDefaultGet(req, res));
         post("/generateRandom", (req, res) -> handleGenerateCars(req, res));
+        post("/generateInvoice", (req, res) -> handleGenerateInvoice(req, res));
 
     }
 
@@ -133,6 +138,21 @@ public class App {
             e.printStackTrace();
         }
         document.close();
+
+        res.type("application/octet-stream"); //
+        res.header("Content-Disposition", "attachment; filename=plik.pdf"); // nagłówek
+
+        OutputStream outputStream = null;
+        try {
+            outputStream = res.raw().getOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            outputStream.write(Files.readAllBytes(Path.of("invoices/plik.pdf"))); // response pliku do przeglądarki
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return "";
     }
